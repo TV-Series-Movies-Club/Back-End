@@ -1,39 +1,48 @@
 from flask import Flask, jsonify
 from flask_cors import CORS
 from flask_migrate import Migrate
-from flask_jwt_extended import JWTManager
+from flask_jwt_extended import JWTManager, jwt_required, create_access_token, get_jwt_identity
+from datetime import timedelta
 
-from models import db
-from routes.auth_routes import auth_bp
-from routes.user_routes import user_bp
-from routes.movie_post_routes import movie_post_bp  # ✅ Corrected import
-from routes.club_routes import club_bp
-from routes.comment_feed_routes import feed_bp
+from app.models import db
+from app.routes.auth_routes import auth_bp
+from app.routes.user_routes import user_bp
+from app.routes.movie_post_routes import movie_post_bp
+from app.routes.club_routes import club_bp
+from app.routes.comment_feed_routes import feed_bp
+from app.routes.watch_routes import watch_bp  
 
 app = Flask(__name__)
+
 app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///movies_club.db'
 app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
-app.config['JWT_SECRET_KEY'] = 'super-secret-key'  # ⚠️ Change in production
+app.config['JWT_SECRET_KEY'] = 'super-secret-key'  
+app.config['JWT_ACCESS_TOKEN_EXPIRES'] = timedelta(minutes=30)
+app.config['JWT_REFRESH_TOKEN_EXPIRES'] = timedelta(days=7)
 
-# Initialize extensions
 db.init_app(app)
 migrate = Migrate(app, db)
 jwt = JWTManager(app)
 CORS(app)
 
-# Register blueprints
-app.register_blueprint(auth_bp)
-app.register_blueprint(user_bp)
-app.register_blueprint(movie_post_bp)  # ✅ Corrected registration
-app.register_blueprint(club_bp)
-app.register_blueprint(feed_bp)
+app.register_blueprint(auth_bp, url_prefix="/auth")
+app.register_blueprint(user_bp, url_prefix="/users")
+app.register_blueprint(movie_post_bp, url_prefix="/posts")
+app.register_blueprint(club_bp, url_prefix="/clubs")
+app.register_blueprint(feed_bp, url_prefix="/feed")
+app.register_blueprint(watch_bp, url_prefix="/watch")  
 
-# Default route
 @app.route('/')
 def home():
     return jsonify({"message": "Welcome to the TV & Movies Club API!"})
 
-# Handle 404 errors
+@app.route('/auth/refresh', methods=['POST'])
+@jwt_required(refresh=True)
+def refresh_access_token():
+    identity = get_jwt_identity()
+    new_access_token = create_access_token(identity=identity)
+    return jsonify(access_token=new_access_token), 200
+
 @app.errorhandler(404)
 def not_found(e):
     return jsonify({"error": "Not found"}), 404
