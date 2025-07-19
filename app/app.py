@@ -14,9 +14,9 @@ from app.routes.watch_routes import watch_bp
 
 app = Flask(__name__)
 
-app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///movies_club.db'
+app.config['SQLALCHEMY_DATABASE_URI'] = 'postgresql://movie_user:newpassword123@localhost/movies_club'
 app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
-app.config['JWT_SECRET_KEY'] = 'super-secret-key'  
+app.config['JWT_SECRET_KEY'] = 'your-super-secret-key'  
 app.config['JWT_ACCESS_TOKEN_EXPIRES'] = timedelta(minutes=30)
 app.config['JWT_REFRESH_TOKEN_EXPIRES'] = timedelta(days=7)
 
