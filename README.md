@@ -24,21 +24,21 @@ A RESTful Flask API backend for the Movies Club platform — where users can sig
 ├── requirements.txt
 ├── README.md
 ```
-🛠️ Setup Instructions
-*** 1. Clone the Repository ***
+## 🛠️ Setup Instructions
+## 1. Clone the Repository 
 
 `git clone https://github.com/TV-Series-Movies-Club/Back-End`
 `cd movies-club-api`
-*** 2. Create & Activate Virtual Environment ***
+ ## 2. Create & Activate Virtual Environment 
 
 `python3 -m venv venv`
 `source venv/bin/activate`  
 `source venv/bin/activate.fish` # On Windows use: 
-*** 3. Install Dependencies ***
+## 3. Install Dependencies 
 
 `pip install -r requirements.txt`
 
-*** 4. Configure Environment Variables ***
+## 4. Configure Environment Variables 
 Create a .env file in the root directory with the following:
 
 `FLASK_APP=app`
@@ -51,14 +51,14 @@ If using PostgreSQL:
 `DATABASE_URL=postgresql://username:password@localhost:5000/movies_club`
 Make sure your PostgreSQL server is running and the database exists.
 
-*** 5. Initialize the Database ***
+## 5. Initialize the Database 
 
 `flask db init`
 `flask db migrate -m "Initial migration"`
 `flask db upgrade`
 `python app/seed.py` (Optional) To seed data:
 
-*** 🚀 Running the App ***
+## 🚀 Running the App 
 Start the development server:
 `flask run`
 `Visit: http://127.0.0.1:5000/`
