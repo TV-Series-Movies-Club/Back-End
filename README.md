@@ -110,6 +110,16 @@ Most endpoints (except signup/login) require a Bearer token in the Authorization
 
 Authorization: Bearer <your_jwt_token>
 
+✅ Note: Pagination is implemented in GET /watch. Use query parameters page and per_page to control pagination.
+
+Example:
+
+GET /watch?page=2&per_page=5
+## 🧪 Testing
+Use Thunder Client (VSCode extension), Postman, or curl to test endpoints.
+
+Each endpoint expects/returns JSON.
+
 ## 🧾 Technologies Used
 
 - **Python 3**

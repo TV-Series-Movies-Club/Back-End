@@ -105,8 +105,19 @@ def get_followers(user_id):
     if not user:
         return jsonify({"error": "User not found"}), 404
 
-    followers = [{"id": u.id, "username": u.username} for u in user.followers]
-    return jsonify({"followers": followers}), 200
+   
+    page = request.args.get('page', 1, type=int)
+    per_page = request.args.get('per_page', 10, type=int)
+    start = (page - 1) * per_page
+    end = start + per_page
+
+    followers = user.followers[start:end]
+    return jsonify({
+        "followers": [{"id": u.id, "username": u.username} for u in followers],
+        "page": page,
+        "per_page": per_page,
+        "total": user.followers.count()
+    }), 200
 
 @user_bp.route('/<int:user_id>/following', methods=['GET'])
 def get_following(user_id):
@@ -114,5 +125,16 @@ def get_following(user_id):
     if not user:
         return jsonify({"error": "User not found"}), 404
 
-    following = [{"id": u.id, "username": u.username} for u in user.followed]
-    return jsonify({"following": following}), 200
+  
+    page = request.args.get('page', 1, type=int)
+    per_page = request.args.get('per_page', 10, type=int)
+    start = (page - 1) * per_page
+    end = start + per_page
+
+    following = user.followed[start:end]
+    return jsonify({
+        "following": [{"id": u.id, "username": u.username} for u in following],
+        "page": page,
+        "per_page": per_page,
+        "total": user.followed.count()
+    }), 200

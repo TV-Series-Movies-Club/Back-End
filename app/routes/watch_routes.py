@@ -42,17 +42,33 @@ def add_watched_movie():
 @jwt_required()
 def get_watched_movies():
     """
-    Retrieve a list of all movies watched by the currently authenticated user.
+    Retrieve a paginated list of all movies watched by the currently authenticated user.
+    Added pagination support with ?page=<page_number>&per_page=<items_per_page>
     """
     user_id = get_jwt_identity()
-    watches = Watch.query.filter_by(user_id=user_id).order_by(Watch.watched_on.desc()).all()
 
-    return jsonify([
-        {
-            "id": w.id,
-            "movie_title": w.movie_title,
-            "experience": w.experience,
-            "watched_on": w.watched_on.isoformat()
-        }
-        for w in watches
-    ]), 200
+   
+    page = request.args.get('page', 1, type=int)
+    per_page = request.args.get('per_page', 10, type=int)
+
+   
+    pagination = Watch.query.filter_by(user_id=user_id)\
+                            .order_by(Watch.watched_on.desc())\
+                            .paginate(page=page, per_page=per_page, error_out=False)
+    
+    watches = pagination.items
+
+    return jsonify({
+        "movies": [
+            {
+                "id": w.id,
+                "movie_title": w.movie_title,
+                "experience": w.experience,
+                "watched_on": w.watched_on.isoformat()
+            }
+            for w in watches
+        ],
+        "page": page,
+        "per_page": per_page,
+        "total": pagination.total
+    }), 200

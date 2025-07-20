@@ -46,15 +46,25 @@ def get_comments(post_id):
     if not post:
         return jsonify({"error": "Post not found"}), 404
 
-    comments = Comment.query.filter_by(post_id=post_id).order_by(Comment.created_at.desc()).all()
+    page = request.args.get('page', 1, type=int)
+    per_page = request.args.get('per_page', 10, type=int)
 
-    return jsonify([
-        {
-            "id": comment.id,
-            "content": comment.content,
-            "user": comment.user.username,
-            "user_id": comment.user.id,
-            "timestamp": comment.created_at.isoformat()
-        }
-        for comment in comments
-    ]), 200
+    comments_paginated = Comment.query.filter_by(post_id=post_id)\
+        .order_by(Comment.created_at.desc())\
+        .paginate(page=page, per_page=per_page, error_out=False)
+
+    return jsonify({
+        "comments": [
+            {
+                "id": comment.id,
+                "content": comment.content,
+                "user": comment.user.username,
+                "user_id": comment.user.id,
+                "timestamp": comment.created_at.isoformat()
+            } for comment in comments_paginated.items
+        ],
+        "total": comments_paginated.total,
+        "page": comments_paginated.page,
+        "per_page": comments_paginated.per_page,
+        "pages": comments_paginated.pages
+    }), 200

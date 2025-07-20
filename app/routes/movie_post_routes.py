@@ -4,6 +4,7 @@ from flask_jwt_extended import jwt_required, get_jwt_identity
 
 movie_post_bp = Blueprint('movie_post_bp', __name__, url_prefix='/posts')
 
+
 @movie_post_bp.route('/', methods=['POST'])
 @jwt_required()
 def create_movie_post():
@@ -32,23 +33,35 @@ def create_movie_post():
         }
     }), 201
 
+
 @movie_post_bp.route('/', methods=['GET'])
 def get_all_posts():
-    posts = MoviePost.query.order_by(MoviePost.timestamp.desc()).all()
-    return jsonify([
-        {
-            "id": post.id,
-            "title": post.title,
-            "poster_url": post.poster_url,
-            "review": post.review,
-            "rating": post.rating,
-            "user_id": post.user_id,
-            "username": post.user.username,
-            "club_id": post.club_id,
-            "timestamp": post.timestamp.isoformat()
-        }
-        for post in posts
-    ]), 200
+
+    page = request.args.get('page', 1, type=int)
+    per_page = request.args.get('per_page', 10, type=int)
+
+    paginated_posts = MoviePost.query.order_by(MoviePost.timestamp.desc()).paginate(page=page, per_page=per_page, error_out=False)
+
+    return jsonify({
+        "posts": [
+            {
+                "id": post.id,
+                "title": post.title,
+                "poster_url": post.poster_url,
+                "review": post.review,
+                "rating": post.rating,
+                "user_id": post.user_id,
+                "username": post.user.username,
+                "club_id": post.club_id,
+                "timestamp": post.timestamp.isoformat()
+            } for post in paginated_posts.items
+        ],
+        "total": paginated_posts.total,
+        "page": paginated_posts.page,
+        "per_page": paginated_posts.per_page,
+        "pages": paginated_posts.pages
+    }), 200
+
 
 @movie_post_bp.route('/<int:id>', methods=['GET'])
 def get_single_post(id):
@@ -65,6 +78,7 @@ def get_single_post(id):
         "timestamp": post.timestamp.isoformat()
     })
 
+
 @movie_post_bp.route('/<int:id>', methods=['DELETE'])
 @jwt_required()
 def delete_post(id):
@@ -78,36 +92,62 @@ def delete_post(id):
     db.session.commit()
     return jsonify({"message": "Post deleted"}), 200
 
+
 @movie_post_bp.route('/user/<int:user_id>', methods=['GET'])
 def get_posts_by_user(user_id):
+  
+    page = request.args.get('page', 1, type=int)
+    per_page = request.args.get('per_page', 10, type=int)
+
     user = User.query.get_or_404(user_id)
-    posts = MoviePost.query.filter_by(user_id=user_id).order_by(MoviePost.timestamp.desc()).all()
-    return jsonify([
-        {
-            "id": post.id,
-            "title": post.title,
-            "poster_url": post.poster_url,
-            "review": post.review,
-            "rating": post.rating,
-            "club_id": post.club_id,
-            "timestamp": post.timestamp.isoformat()
-        }
-        for post in posts
-    ]), 200
+    paginated_posts = MoviePost.query.filter_by(user_id=user_id)\
+        .order_by(MoviePost.timestamp.desc())\
+        .paginate(page=page, per_page=per_page, error_out=False)
+
+    return jsonify({
+        "posts": [
+            {
+                "id": post.id,
+                "title": post.title,
+                "poster_url": post.poster_url,
+                "review": post.review,
+                "rating": post.rating,
+                "club_id": post.club_id,
+                "timestamp": post.timestamp.isoformat()
+            } for post in paginated_posts.items
+        ],
+        "total": paginated_posts.total,
+        "page": paginated_posts.page,
+        "per_page": paginated_posts.per_page,
+        "pages": paginated_posts.pages
+    }), 200
+
 
 @movie_post_bp.route('/club/<int:club_id>', methods=['GET'])
 def get_posts_by_club(club_id):
-    posts = MoviePost.query.filter_by(club_id=club_id).order_by(MoviePost.timestamp.desc()).all()
-    return jsonify([
-        {
-            "id": post.id,
-            "title": post.title,
-            "poster_url": post.poster_url,
-            "review": post.review,
-            "rating": post.rating,
-            "user_id": post.user_id,
-            "username": post.user.username,
-            "timestamp": post.timestamp.isoformat()
-        }
-        for post in posts
-    ]), 200
+    
+    page = request.args.get('page', 1, type=int)
+    per_page = request.args.get('per_page', 10, type=int)
+
+    paginated_posts = MoviePost.query.filter_by(club_id=club_id)\
+        .order_by(MoviePost.timestamp.desc())\
+        .paginate(page=page, per_page=per_page, error_out=False)
+
+    return jsonify({
+        "posts": [
+            {
+                "id": post.id,
+                "title": post.title,
+                "poster_url": post.poster_url,
+                "review": post.review,
+                "rating": post.rating,
+                "user_id": post.user_id,
+                "username": post.user.username,
+                "timestamp": post.timestamp.isoformat()
+            } for post in paginated_posts.items
+        ],
+        "total": paginated_posts.total,
+        "page": paginated_posts.page,
+        "per_page": paginated_posts.per_page,
+        "pages": paginated_posts.pages
+    }), 200
