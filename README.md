@@ -73,30 +73,53 @@ Send requests to protected endpoints using:
 ``
 `Authorization: Bearer <access_token>`
 
-## 📮 Endpoints Overview
-| Method | Endpoint                                   | Description              |
-| ------ | ------------------------------------------ | ------------------------ |
-| POST   | /auth/signup                               | Register a new user      |
-| POST   | /auth/login                                | Login and receive tokens |
-| GET    | /users/me                                  | Get current user info    |
-| PUT    | /users/profile                             | Update profile info      |
-| PUT    | /users/profile/password                    | Change password          |
-| POST   | /movies/                                   | Add a movie post         |
-| POST   | /clubs/                                    | Create a movie club      |
-| POST   | /feeds/comments/posts/\<post\_id>/comments | Comment on a post        |
-| POST   | /watch/                                    | Log a watched movie      |
-| GET    | /watch/                                    | View watched movies      |
+## 🧪 API Testing Tool
 
+This project uses [Thunder Client](https://www.thunderclient.com/) — a lightweight REST API client extension for VS Code — for testing and interacting with the API endpoints during development.
+
+### 🚀 How to Use Thunder Client
+
+1. Install Thunder Client from the VS Code Extensions Marketplace.
+2. Open the Thunder Client tab on the sidebar.
+3. Create a new collection and add requests to test the API.
+4. Include Authorization headers (e.g., JWT token) where necessary.
+5. Send requests to endpoints like `http://localhost:5000/`.
+
+## 📌 Core API Features
+
+| **Feature**                 | **Endpoint(s)**                              | Method |
+| --------------------------- | -------------------------------------------- | ------ |
+| Signup                      | /auth/signup                                 | POST   |
+| Login                       | /auth/login                                  | POST   |
+| View Profile                | /users/me                                    | GET    |
+| Update Profile              | /users/profile                               | PUT    |
+| Change Password             | /users/profile/password                      | PUT    |
+| Create a Post               | /posts/                                      | POST   |
+| View All Posts              | /posts/                                      | GET    |
+| Get a Specific Post         | /posts/\<post\_id>                           | GET    |
+| Follow/Unfollow User        | /users/follow/<id>, /unfollow/<id>           | POST   |
+| View Followers/Following    | /users/<id>/followers, /users/<id>/following | GET    |
+| Create a Movie Club         | /clubs/                                      | POST   |
+| Join a Movie Club           | /clubs/\<club\_id>/join                      | POST   |
+| Comment/Review a Post       | /feeds/comments/posts/\<post\_id>/comments   | POST   |
+| Get Comments on a Post      | /feeds/comments/posts/\<post\_id>/comments   | GET    |
+| Track Watched Movies        | /watch/                                      | POST   |
+| View Watched Movies History | /watch/                                      | GET    |
+
+Most endpoints (except signup/login) require a Bearer token in the Authorization header:
+
+Authorization: Bearer <your_jwt_token>
 
 ## 🧾 Technologies Used
--Python 3
--Flask
--Flask SQLAlchemy
--Flask JWT Extended
--Flask Migrate
--PostgreSQL or SQLite
--dotenv
--CORS
+
+- **Python 3**
+- **Flask**
+- **Flask SQLAlchemy**
+- **Flask JWT Extended**
+- **Flask Migrate**
+- **PostgreSQL or SQLite**
+- **dotenv**
+- **CORS**
 
 ## 👨‍💻 Author
 Billadams Nyamweno — GitHub
