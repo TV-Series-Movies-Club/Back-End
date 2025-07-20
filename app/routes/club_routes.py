@@ -2,7 +2,7 @@ from flask import Blueprint, request, jsonify
 from app.models import db, MovieClub, User
 from flask_jwt_extended import jwt_required, get_jwt_identity
 
-club_bp = Blueprint('club_bp', __name__)
+club_bp = Blueprint('club_bp', __name__, url_prefix='/clubs')
 
 @club_bp.route('/', methods=['POST']) 
 @jwt_required()

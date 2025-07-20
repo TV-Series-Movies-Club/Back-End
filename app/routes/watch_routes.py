@@ -2,7 +2,7 @@ from flask import Blueprint, request, jsonify
 from flask_jwt_extended import jwt_required, get_jwt_identity
 from app.models import db, Watch, User
 
-watch_bp = Blueprint('watch_bp', __name__)
+watch_bp = Blueprint('watch_bp', __name__, url_prefix='/watch')
 
 @watch_bp.route('/', methods=['POST'])
 @jwt_required()

@@ -2,7 +2,7 @@ from flask import Blueprint, request, jsonify
 from app.models import db, MoviePost, User
 from flask_jwt_extended import jwt_required, get_jwt_identity
 
-movie_post_bp = Blueprint('movie_post_bp', __name__)
+movie_post_bp = Blueprint('movie_post_bp', __name__, url_prefix='/posts')
 
 @movie_post_bp.route('/', methods=['POST'])
 @jwt_required()

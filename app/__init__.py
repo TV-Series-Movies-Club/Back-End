@@ -1,4 +1,3 @@
-# app/__init__.py
 import os
 from flask import Flask, jsonify
 from flask_sqlalchemy import SQLAlchemy
@@ -7,10 +6,8 @@ from flask_migrate import Migrate
 from flask_jwt_extended import JWTManager
 from dotenv import load_dotenv
 
-# Load environment variables
 load_dotenv()
 
-# Initialize extensions
 db = SQLAlchemy()
 migrate = Migrate()
 jwt = JWTManager()
@@ -27,19 +24,19 @@ def create_app():
     jwt.init_app(app)
     CORS(app)
 
-    # Blueprint imports (after db is initialized to avoid circular import issues)
     from .routes.auth_routes import auth_bp
     from .routes.user_routes import user_bp
-    from .routes.movie_post_routes import post_bp
+    from .routes.movie_post_routes import movie_post_bp
     from .routes.club_routes import club_bp
     from .routes.comment_feed_routes import feed_bp
+    from .routes.watch_routes import watch_bp  
 
-    # Register Blueprints
     app.register_blueprint(auth_bp)
     app.register_blueprint(user_bp)
-    app.register_blueprint(post_bp)
+    app.register_blueprint(movie_post_bp)
     app.register_blueprint(club_bp)
     app.register_blueprint(feed_bp)
+    app.register_blueprint(watch_bp)  
 
     @app.route('/')
     def index():

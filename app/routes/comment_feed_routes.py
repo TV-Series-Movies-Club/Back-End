@@ -2,7 +2,7 @@ from flask import Blueprint, request, jsonify
 from flask_jwt_extended import jwt_required, get_jwt_identity
 from app.models import db, Comment, MoviePost, User
 
-feed_bp = Blueprint('feed_bp', __name__)
+feed_bp = Blueprint('feed_bp', __name__, url_prefix='/feeds/comments')
 
 
 @feed_bp.route('/posts/<int:post_id>/comments', methods=['POST'])
