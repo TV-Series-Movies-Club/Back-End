@@ -8,6 +8,7 @@ from app.models import db, User
 
 auth_bp = Blueprint('auth_bp', __name__, url_prefix='/auth')
 
+# Signup Route
 @auth_bp.route('/signup', methods=['POST'])
 def signup():
     data = request.get_json()
@@ -26,8 +27,21 @@ def signup():
     db.session.add(user)
     db.session.commit()
 
-    return jsonify({"message": "User created successfully"}), 201
+    access_token = create_access_token(identity=user.id)
+    refresh_token = create_refresh_token(identity=user.id)
 
+    return jsonify({
+        "user": {
+            "id": user.id,
+            "username": user.username,
+            "email": user.email
+        },
+        "token": access_token,
+        "refresh_token": refresh_token,
+        "message": "User created successfully"
+    }), 201
+
+# Login Route
 @auth_bp.route('/login', methods=['POST'])
 def login():
     data = request.get_json()
@@ -42,11 +56,16 @@ def login():
         return jsonify({
             "access_token": access_token,
             "refresh_token": refresh_token,
-            "username": user.username
+            "user": {
+                "id": user.id,
+                "username": user.username,
+                "email": user.email
+            }
         }), 200
 
     return jsonify({"error": "Invalid credentials"}), 401
 
+# Get Profile
 @auth_bp.route('/me', methods=['GET'])
 @jwt_required()
 def get_profile():
@@ -63,6 +82,8 @@ def get_profile():
         "followers_count": user.followers.count(),
         "following_count": user.followed.count()
     }), 200
+
+# Refresh Token
 @auth_bp.route('/refresh', methods=['POST'])
 @jwt_required(refresh=True)
 def refresh():
