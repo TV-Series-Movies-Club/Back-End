@@ -16,17 +16,29 @@ def signup():
     password = data.get('password')
 
     if not all([username, email, password]):
-        return jsonify({"error": "All fields required"}), 400
+        return jsonify({"message": "All fields required"}), 400
 
     if User.query.filter((User.username == username) | (User.email == email)).first():
-        return jsonify({"error": "User already exists"}), 400
+        return jsonify({"message": "User already exists"}), 400
 
     hashed_password = generate_password_hash(password)
     user = User(username=username, email=email, password_hash=hashed_password)
     db.session.add(user)
     db.session.commit()
 
-    return jsonify({"message": "User created successfully"}), 201
+    access_token = create_access_token(identity=user.id)
+    refresh_token = create_refresh_token(identity=user.id)
+
+    return jsonify({
+        "message": "User created successfully",
+        "user": {
+            "id": user.id,
+            "username": user.username,
+            "email": user.email
+        },
+        "token": access_token,
+        "refresh_token": refresh_token
+    }), 201
 
 @auth_bp.route('/login', methods=['POST'])
 def login():
@@ -39,13 +51,18 @@ def login():
     if user and check_password_hash(user.password_hash, password):
         access_token = create_access_token(identity=user.id)
         refresh_token = create_refresh_token(identity=user.id)
+
         return jsonify({
-            "access_token": access_token,
-            "refresh_token": refresh_token,
-            "username": user.username
+            "user": {
+                "id": user.id,
+                "username": user.username,
+                "email": user.email
+            },
+            "token": access_token,
+            "refresh_token": refresh_token
         }), 200
 
-    return jsonify({"error": "Invalid credentials"}), 401
+    return jsonify({"message": "Invalid credentials"}), 401
 
 @auth_bp.route('/me', methods=['GET'])
 @jwt_required()
@@ -54,7 +71,7 @@ def get_profile():
     user = User.query.get(user_id)
 
     if not user:
-        return jsonify({"error": "User not found"}), 404
+        return jsonify({"message": "User not found"}), 404
 
     return jsonify({
         "id": user.id,
@@ -63,6 +80,7 @@ def get_profile():
         "followers_count": user.followers.count(),
         "following_count": user.followed.count()
     }), 200
+
 @auth_bp.route('/refresh', methods=['POST'])
 @jwt_required(refresh=True)
 def refresh():
