@@ -38,20 +38,18 @@ def add_watched_movie():
         }
     }), 201
 
+
 @watch_bp.route('/', methods=['GET'])
 @jwt_required()
 def get_watched_movies():
     """
     Retrieve a paginated list of all movies watched by the currently authenticated user.
-    Added pagination support with ?page=<page_number>&per_page=<items_per_page>
+    Supports pagination with ?page=<page_number>&per_page=<items_per_page>
     """
     user_id = get_jwt_identity()
-
-   
     page = request.args.get('page', 1, type=int)
     per_page = request.args.get('per_page', 10, type=int)
 
-   
     pagination = Watch.query.filter_by(user_id=user_id)\
                             .order_by(Watch.watched_on.desc())\
                             .paginate(page=page, per_page=per_page, error_out=False)

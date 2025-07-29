@@ -1,3 +1,4 @@
+
 from flask import Blueprint, request, jsonify
 from flask_jwt_extended import jwt_required, get_jwt_identity
 from models import db, MoviePost  # adjust import if needed
@@ -21,7 +22,6 @@ def get_movie_posts():
             "timestamp": post.timestamp.isoformat()
         })
     return jsonify(result), 200
-
 
 # POST a new movie post
 @movie_post_bp.route('/', methods=['POST'])
@@ -65,3 +65,4 @@ def create_movie_post():
     except Exception as e:
         db.session.rollback()
         return jsonify({"error": "Failed to create post", "details": str(e)}), 500
+

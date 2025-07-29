@@ -1,10 +1,11 @@
+
 from flask import Blueprint, request, jsonify
 from flask_jwt_extended import jwt_required, get_jwt_identity
 from app.models import db, Comment, MoviePost, User
 
 feed_bp = Blueprint('feed_bp', __name__, url_prefix='/feeds/comments')
 
-
+# Add a comment to a post
 @feed_bp.route('/posts/<int:post_id>/comments', methods=['POST'])
 @jwt_required()
 def add_comment(post_id):
@@ -39,7 +40,7 @@ def add_comment(post_id):
         }
     }), 201
 
-
+# Get comments for a specific post
 @feed_bp.route('/posts/<int:post_id>/comments', methods=['GET'])
 def get_comments(post_id):
     post = MoviePost.query.get(post_id)
@@ -58,8 +59,8 @@ def get_comments(post_id):
             {
                 "id": comment.id,
                 "content": comment.content,
-                "user": comment.user.username,
-                "user_id": comment.user.id,
+                "user": comment.user.username if comment.user else None,
+                "user_id": comment.user.id if comment.user else None,
                 "timestamp": comment.created_at.isoformat()
             } for comment in comments_paginated.items
         ],

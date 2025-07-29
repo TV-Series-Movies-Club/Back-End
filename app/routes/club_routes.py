@@ -1,10 +1,10 @@
+
 from flask import Blueprint, request, jsonify
-from app.models import db, MovieClub, User
 from flask_jwt_extended import jwt_required, get_jwt_identity
 from sqlalchemy.orm import joinedload
+from app.models import db, MovieClub, User, MoviePost
 
 club_bp = Blueprint('club_bp', __name__, url_prefix='/clubs')
-
 
 # Create a new club
 @club_bp.route('/', methods=['POST'])
@@ -32,7 +32,6 @@ def create_club():
             "creator_id": new_club.creator_id
         }
     }), 201
-
 
 # Get list of clubs (paginated)
 @club_bp.route('/', methods=['GET'])
@@ -62,7 +61,6 @@ def get_clubs():
         "pages": clubs_paginated.pages
     }), 200
 
-
 # Get details of a specific club
 @club_bp.route('/<int:club_id>', methods=['GET'])
 def get_club(club_id):
@@ -88,7 +86,6 @@ def get_club(club_id):
         }
     }), 200
 
-
 # Join a club
 @club_bp.route('/join/<int:club_id>', methods=['POST'])
 @jwt_required()
@@ -105,7 +102,6 @@ def join_club(club_id):
 
     return jsonify({"message": f"Joined club {club.name}"}), 200
 
-
 # Leave a club
 @club_bp.route('/<int:club_id>/leave', methods=['POST'])
 @jwt_required()
@@ -121,7 +117,6 @@ def leave_club(club_id):
 
     return jsonify({"message": f"Left club '{club.name}'"}), 200
 
-
 # Get posts for a specific club (paginated)
 @club_bp.route('/<int:club_id>/posts', methods=['GET'])
 def get_club_posts(club_id):
@@ -130,7 +125,7 @@ def get_club_posts(club_id):
     page = request.args.get('page', 1, type=int)
     per_page = request.args.get('per_page', 10, type=int)
 
-    posts_query = club.posts.order_by(db.desc(db.func.coalesce(db.func.length(MovieClub.name), 0)))
+    posts_query = MoviePost.query.filter_by(club_id=club.id).order_by(MoviePost.timestamp.desc())
     posts_paginated = posts_query.paginate(page=page, per_page=per_page, error_out=False)
 
     posts_data = [
@@ -153,3 +148,4 @@ def get_club_posts(club_id):
         "per_page": posts_paginated.per_page,
         "pages": posts_paginated.pages
     }), 200
+

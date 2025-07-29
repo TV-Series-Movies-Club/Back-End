@@ -1,3 +1,4 @@
+
 from flask import Blueprint, request, jsonify
 from flask_jwt_extended import jwt_required, get_jwt_identity
 from werkzeug.security import check_password_hash, generate_password_hash
@@ -105,7 +106,6 @@ def get_followers(user_id):
     if not user:
         return jsonify({"error": "User not found"}), 404
 
-   
     page = request.args.get('page', 1, type=int)
     per_page = request.args.get('per_page', 10, type=int)
     start = (page - 1) * per_page
@@ -125,7 +125,6 @@ def get_following(user_id):
     if not user:
         return jsonify({"error": "User not found"}), 404
 
-  
     page = request.args.get('page', 1, type=int)
     per_page = request.args.get('per_page', 10, type=int)
     start = (page - 1) * per_page
@@ -138,3 +137,4 @@ def get_following(user_id):
         "per_page": per_page,
         "total": user.followed.count()
     }), 200
+
