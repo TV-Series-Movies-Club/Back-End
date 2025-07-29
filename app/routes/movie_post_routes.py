@@ -1,7 +1,7 @@
 
 from flask import Blueprint, request, jsonify
 from flask_jwt_extended import jwt_required, get_jwt_identity
-from models import db, MoviePost  # adjust import if needed
+from app.models import db, MoviePost  # adjust import if needed
 
 movie_post_bp = Blueprint('movie_post_bp', __name__, url_prefix='/api/posts')
 
