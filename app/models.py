@@ -1,7 +1,7 @@
-from app import db  
+from app import db
 from datetime import datetime
 
-# Association tables
+
 followers = db.Table(
     'followers',
     db.Column('follower_id', db.Integer, db.ForeignKey('users.id'), primary_key=True),
@@ -14,7 +14,7 @@ user_club = db.Table(
     db.Column('club_id', db.Integer, db.ForeignKey('movie_clubs.id'), primary_key=True)
 )
 
-# User model
+
 class User(db.Model):
     __tablename__ = 'users'
 
@@ -27,6 +27,7 @@ class User(db.Model):
     comments = db.relationship('Comment', back_populates='user', cascade='all, delete')
     joined_clubs = db.relationship('MovieClub', secondary=user_club, back_populates='members')
     watched_movies = db.relationship('Watch', back_populates='user', cascade='all, delete')
+    created_clubs = db.relationship('MovieClub', back_populates='creator', cascade='all, delete')
 
     followed = db.relationship(
         'User',
@@ -37,7 +38,7 @@ class User(db.Model):
         lazy='dynamic'
     )
 
-# Movie post model
+
 class MoviePost(db.Model):
     __tablename__ = 'movie_posts'
 
@@ -55,7 +56,7 @@ class MoviePost(db.Model):
     club = db.relationship('MovieClub', back_populates='posts')
     comments = db.relationship('Comment', back_populates='post', cascade='all, delete')
 
-# Comment model
+
 class Comment(db.Model):
     __tablename__ = 'comments'
 
@@ -69,7 +70,7 @@ class Comment(db.Model):
     user = db.relationship('User', back_populates='comments')
     post = db.relationship('MoviePost', back_populates='comments')
 
-# ✅ Updated MovieClub model
+
 class MovieClub(db.Model):
     __tablename__ = 'movie_clubs'
 
@@ -77,13 +78,14 @@ class MovieClub(db.Model):
     name = db.Column(db.String(80), nullable=False)
     description = db.Column(db.Text)
     genre = db.Column(db.String(50))
-    creator_id = db.Column(db.Integer, db.ForeignKey('users.id'), nullable=False)
 
-    creator = db.relationship('User', backref='created_clubs')  # ✅ Fix: now has a backref
+    creator_id = db.Column(db.Integer, db.ForeignKey('users.id'), nullable=False)
+    creator = db.relationship('User', back_populates='created_clubs')
+
     posts = db.relationship('MoviePost', back_populates='club', cascade='all, delete')
     members = db.relationship('User', secondary=user_club, back_populates='joined_clubs')
 
-# Watch model
+
 class Watch(db.Model):
     __tablename__ = 'watches'
 
