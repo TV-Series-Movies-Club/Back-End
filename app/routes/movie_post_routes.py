@@ -4,43 +4,53 @@ from flask_jwt_extended import jwt_required, get_jwt_identity
 
 movie_post_bp = Blueprint('movie_post_bp', __name__, url_prefix='/posts')
 
-
 @movie_post_bp.route('/', methods=['POST'])
 @jwt_required()
 def create_movie_post():
     data = request.get_json()
     user_id = get_jwt_identity()
 
-    new_post = MoviePost(
-        title=data.get('title'),
-        poster_url=data.get('poster_url'),
-        review=data.get('review'),
-        rating=data.get('rating'),
-        user_id=user_id,
-        club_id=data.get('club_id')  
-    )
-    db.session.add(new_post)
-    db.session.commit()
+    # Validate required fields
+    title = data.get('title')
+    review = data.get('review')
 
-    return jsonify({
-        "message": "Movie post created successfully",
-        "post": {
-            "id": new_post.id,
-            "title": new_post.title,
-            "review": new_post.review,
-            "rating": new_post.rating,
-            "user_id": new_post.user_id
-        }
-    }), 201
+    if not title or not review:
+        return jsonify({"error": "Title and review are required."}), 400
+
+    try:
+        new_post = MoviePost(
+            title=title,
+            poster_url=data.get('poster_url'),
+            review=review,
+            rating=data.get('rating'),
+            user_id=user_id,
+            club_id=data.get('club_id')  # Optional
+        )
+        db.session.add(new_post)
+        db.session.commit()
+
+        return jsonify({
+            "message": "Movie post created successfully",
+            "post": {
+                "id": new_post.id,
+                "title": new_post.title,
+                "review": new_post.review,
+                "rating": new_post.rating,
+                "user_id": new_post.user_id
+            }
+        }), 201
+    except Exception as e:
+        db.session.rollback()
+        return jsonify({"error": "Failed to create post", "details": str(e)}), 500
 
 
 @movie_post_bp.route('/', methods=['GET'])
 def get_all_posts():
-
     page = request.args.get('page', 1, type=int)
     per_page = request.args.get('per_page', 10, type=int)
 
-    paginated_posts = MoviePost.query.order_by(MoviePost.timestamp.desc()).paginate(page=page, per_page=per_page, error_out=False)
+    paginated_posts = MoviePost.query.order_by(MoviePost.timestamp.desc())\
+        .paginate(page=page, per_page=per_page, error_out=False)
 
     return jsonify({
         "posts": [
@@ -95,7 +105,6 @@ def delete_post(id):
 
 @movie_post_bp.route('/user/<int:user_id>', methods=['GET'])
 def get_posts_by_user(user_id):
-  
     page = request.args.get('page', 1, type=int)
     per_page = request.args.get('per_page', 10, type=int)
 
@@ -125,7 +134,6 @@ def get_posts_by_user(user_id):
 
 @movie_post_bp.route('/club/<int:club_id>', methods=['GET'])
 def get_posts_by_club(club_id):
-    
     page = request.args.get('page', 1, type=int)
     per_page = request.args.get('per_page', 10, type=int)
 
