@@ -1,6 +1,6 @@
 from flask import Blueprint, request, jsonify
 from flask_jwt_extended import jwt_required, get_jwt_identity
-from app.models import db, Watch, User
+from app.models import db, Watch
 from datetime import datetime
 
 watch_bp = Blueprint('watch_bp', __name__, url_prefix='/watch')
@@ -10,20 +10,23 @@ watch_bp = Blueprint('watch_bp', __name__, url_prefix='/watch')
 @jwt_required()
 def add_watched_movie():
     """
-    Log a movie as watched with an optional user experience description and watched date.
+    Log a movie as watched with optional metadata.
     Requires JWT token.
     """
     data = request.get_json()
     user_id = get_jwt_identity()
 
     movie_title = data.get('movie_title')
-    experience = data.get('experience')
-    watched_on_str = data.get('watched_on')  # e.g., "2025-07-30"
+    year = data.get('year')
+    genre = data.get('genre')
+    rating = data.get('rating')
+    notes = data.get('notes')  # replaces 'experience'
+    watched_on_str = data.get('watched_on')
 
     if not movie_title:
         return jsonify({"error": "Movie title is required"}), 400
 
-    # Try to parse watched_on if provided, otherwise use default
+    # Parse the watched date or use today
     try:
         watched_on = datetime.strptime(watched_on_str, "%Y-%m-%d").date() if watched_on_str else datetime.utcnow().date()
     except ValueError:
@@ -31,7 +34,10 @@ def add_watched_movie():
 
     watched = Watch(
         movie_title=movie_title,
-        experience=experience,
+        year=year,
+        genre=genre,
+        rating=rating,
+        notes=notes,
         watched_on=watched_on,
         user_id=user_id
     )
@@ -43,7 +49,10 @@ def add_watched_movie():
         "watch": {
             "id": watched.id,
             "movie_title": watched.movie_title,
-            "experience": watched.experience,
+            "year": watched.year,
+            "genre": watched.genre,
+            "rating": watched.rating,
+            "notes": watched.notes,
             "watched_on": watched.watched_on.isoformat()
         }
     }), 201
@@ -53,17 +62,16 @@ def add_watched_movie():
 @jwt_required()
 def get_watched_movies():
     """
-    Retrieve a paginated list of all movies watched by the currently authenticated user.
-    Supports pagination with ?page=<page_number>&per_page=<items_per_page>
+    Retrieve a paginated list of all movies watched by the current user.
     """
     user_id = get_jwt_identity()
     page = request.args.get('page', 1, type=int)
     per_page = request.args.get('per_page', 10, type=int)
 
-    pagination = Watch.query.filter_by(user_id=user_id)\
-                            .order_by(Watch.watched_on.desc())\
+    pagination = Watch.query.filter_by(user_id=user_id) \
+                            .order_by(Watch.watched_on.desc()) \
                             .paginate(page=page, per_page=per_page, error_out=False)
-    
+
     watches = pagination.items
 
     return jsonify({
@@ -71,7 +79,10 @@ def get_watched_movies():
             {
                 "id": w.id,
                 "movie_title": w.movie_title,
-                "experience": w.experience,
+                "year": w.year,
+                "genre": w.genre,
+                "rating": w.rating,
+                "notes": w.notes,
                 "watched_on": w.watched_on.isoformat()
             }
             for w in watches
