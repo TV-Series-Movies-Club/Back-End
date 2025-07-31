@@ -1,4 +1,5 @@
 import os
+import logging
 from flask import Flask, jsonify
 from flask_sqlalchemy import SQLAlchemy
 from flask_cors import CORS
@@ -23,11 +24,27 @@ def create_app():
     app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
     app.config['JWT_SECRET_KEY'] = os.getenv('JWT_SECRET_KEY', 'super-secret-key')
 
-    # Initialize extensions with app
+    # Enable CORS
+    CORS(app)
+
+    # Initialize extensions
     db.init_app(app)
     migrate.init_app(app, db)
     jwt.init_app(app)
-    CORS(app)
+
+    # -------------------
+    # Setup Logging
+    # -------------------
+    logging.basicConfig(level=logging.INFO)
+    logger = logging.getLogger(__name__)
+
+    # You can also use file logging like this:
+    # logging.basicConfig(filename='error.log', level=logging.ERROR)
+
+    @app.errorhandler(Exception)
+    def handle_exception(e):
+        app.logger.error("Unhandled Exception: %s", e, exc_info=True)
+        return jsonify({"error": "Internal Server Error"}), 500
 
     # Register Blueprints
     try:
@@ -45,7 +62,7 @@ def create_app():
         app.register_blueprint(feed_bp)
         app.register_blueprint(watch_bp)
     except ImportError as e:
-        print(f"[Blueprint Error] Failed to register blueprints: {e}")
+        app.logger.error("[Blueprint Error] Failed to register blueprints", exc_info=True)
 
     # Root endpoint
     @app.route('/')

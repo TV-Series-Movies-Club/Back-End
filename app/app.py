@@ -1,3 +1,4 @@
+import logging
 from flask import Flask, jsonify
 from flask_cors import CORS
 from flask_migrate import Migrate
@@ -14,17 +15,31 @@ from app.routes.watch_routes import watch_bp
 
 app = Flask(__name__)
 
+# Config
 app.config['SQLALCHEMY_DATABASE_URI'] = 'postgresql://movie_user:newpassword123@localhost/movies_club'
 app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
 app.config['JWT_SECRET_KEY'] = 'your-super-secret-key'  
 app.config['JWT_ACCESS_TOKEN_EXPIRES'] = timedelta(minutes=30)
 app.config['JWT_REFRESH_TOKEN_EXPIRES'] = timedelta(days=7)
 
+# Init extensions
 db.init_app(app)
 migrate = Migrate(app, db)
 jwt = JWTManager(app)
 CORS(app)
 
+# ----------------------
+# ✅ Logging Setup
+# ----------------------
+logging.basicConfig(level=logging.INFO)  # or logging.DEBUG for more detail
+logger = logging.getLogger(__name__)
+
+@app.errorhandler(Exception)
+def handle_exception(e):
+    logger.error(f"Unhandled Exception: {e}", exc_info=True)
+    return jsonify({"error": "Internal Server Error"}), 500
+
+# Blueprints
 app.register_blueprint(auth_bp, url_prefix="/auth")
 app.register_blueprint(user_bp, url_prefix="/users")
 app.register_blueprint(movie_post_bp, url_prefix="/posts")
@@ -32,6 +47,7 @@ app.register_blueprint(club_bp, url_prefix="/clubs")
 app.register_blueprint(feed_bp, url_prefix="/feed")
 app.register_blueprint(watch_bp, url_prefix="/watch")  
 
+# Routes
 @app.route('/')
 def home():
     return jsonify({"message": "Welcome to the TV & Movies Club API!"})
@@ -47,5 +63,8 @@ def refresh_access_token():
 def not_found(e):
     return jsonify({"error": "Not found"}), 404
 
+# ----------------------
+# ✅ Run the App
+# ----------------------
 if __name__ == '__main__':
     app.run(debug=True)
