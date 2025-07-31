@@ -87,12 +87,14 @@ class Watch(db.Model):
     __tablename__ = 'watches'
 
     id = db.Column(db.Integer, primary_key=True)
-    movie_title = db.Column(db.String(255), nullable=False)
+    movie_title = db.Column(db.String, nullable=False)
     year = db.Column(db.Integer)
-    genre = db.Column(db.String(50))
+    genre = db.Column(db.String)
     rating = db.Column(db.Integer)
     notes = db.Column(db.Text)
-    watched_on = db.Column(db.Date, nullable=False, default=db.func.current_date())
+    watched_on = db.Column(db.Date, nullable=False)
 
     user_id = db.Column(db.Integer, db.ForeignKey('users.id'), nullable=False)
-    user = db.relationship('User', back_populates='watched_movies')
+    user = db.relationship("User", back_populates="watched_movies")  # <-- match this!
+
+

@@ -7,8 +7,7 @@ import logging
 # Setup logger
 logger = logging.getLogger(__name__)
 if not logger.handlers:
-    # fallback in case logging is not set globally
-    logging.basicConfig(level=logging.DEBUG)
+    logging.basicConfig(level=logging.INFO)
 
 watch_bp = Blueprint('watch_bp', __name__, url_prefix='/watch')
 
@@ -23,18 +22,20 @@ def add_watched_movie():
         data = request.get_json(force=True)
         user_id = get_jwt_identity()
 
+        logger.info(f"[POST /watch] Received data: {data}, user_id: {user_id}")
+
         movie_title = data.get('movie_title')
         year = data.get('year')
         genre = data.get('genre')
         rating = data.get('rating')
-        notes = data.get('notes')  # replaces 'experience'
+        notes = data.get('notes')
         watched_on_str = data.get('watched_on')
 
         if not movie_title:
             return jsonify({"error": "Movie title is required"}), 400
 
         # Validate year
-        if year != "" and year is not None:
+        if year:
             try:
                 year = int(year)
             except ValueError:
@@ -43,7 +44,7 @@ def add_watched_movie():
             year = None
 
         # Validate rating
-        if rating != "" and rating is not None:
+        if rating:
             try:
                 rating = int(rating)
                 if rating < 1 or rating > 5:
@@ -71,6 +72,8 @@ def add_watched_movie():
 
         db.session.add(watched)
         db.session.commit()
+
+        logger.info(f"[POST /watch] Watch entry created: ID {watched.id}")
 
         return jsonify({
             "message": "Movie logged successfully",
@@ -100,6 +103,8 @@ def get_watched_movies():
         user_id = get_jwt_identity()
         page = request.args.get('page', 1, type=int)
         per_page = request.args.get('per_page', 10, type=int)
+
+        logger.info(f"[GET /watch] Fetching watched movies for user {user_id}, page {page}")
 
         pagination = Watch.query.filter_by(user_id=user_id) \
                                 .order_by(Watch.watched_on.desc()) \
