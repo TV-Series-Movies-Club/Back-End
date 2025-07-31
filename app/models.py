@@ -83,14 +83,16 @@ class MovieClub(db.Model):
     posts = db.relationship('MoviePost', back_populates='club', cascade='all, delete')
     members = db.relationship('User', secondary=user_club, back_populates='joined_clubs')
 
-# Watch model
 class Watch(db.Model):
     __tablename__ = 'watches'
 
     id = db.Column(db.Integer, primary_key=True)
     movie_title = db.Column(db.String(255), nullable=False)
+    year = db.Column(db.Integer)
+    genre = db.Column(db.String(50))
+    rating = db.Column(db.Integer)
+    notes = db.Column(db.Text)
     watched_on = db.Column(db.Date, nullable=False, default=db.func.current_date())
-    experience = db.Column(db.Text)
 
     user_id = db.Column(db.Integer, db.ForeignKey('users.id'), nullable=False)
     user = db.relationship('User', back_populates='watched_movies')
