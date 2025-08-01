@@ -3,8 +3,8 @@ from flask_jwt_extended import jwt_required, get_jwt_identity
 from werkzeug.security import check_password_hash, generate_password_hash
 from werkzeug.utils import secure_filename
 import os
-
-from app.models import db, User, MoviePost  # Make sure MoviePost is imported
+from app.models import db, User, MoviePost
+from datetime import datetime
 
 user_bp = Blueprint('user_bp', __name__, url_prefix='/users')
 
@@ -16,7 +16,8 @@ def user_to_dict(user):
         "id": user.id,
         "username": user.username,
         "email": user.email,
-        "profile_picture": user.profile_picture
+        "profile_picture": user.profile_picture,
+        "created_at": user.created_at.isoformat() if user.created_at else None
     }
 
 @user_bp.route('/me', methods=['GET'])
