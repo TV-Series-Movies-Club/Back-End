@@ -1,16 +1,22 @@
-
 from flask import Blueprint, request, jsonify
 from flask_jwt_extended import jwt_required, get_jwt_identity
 from werkzeug.security import check_password_hash, generate_password_hash
-from app.models import db, User
+from werkzeug.utils import secure_filename
+import os
+
+from app.models import db, User, MoviePost  # Make sure MoviePost is imported
 
 user_bp = Blueprint('user_bp', __name__, url_prefix='/users')
+
+UPLOAD_FOLDER = os.path.join(os.getcwd(), 'static', 'uploads')
+os.makedirs(UPLOAD_FOLDER, exist_ok=True)
 
 def user_to_dict(user):
     return {
         "id": user.id,
         "username": user.username,
-        "email": user.email
+        "email": user.email,
+        "profile_picture": user.profile_picture
     }
 
 @user_bp.route('/me', methods=['GET'])
@@ -31,14 +37,19 @@ def update_profile():
     if not user:
         return jsonify({"error": "User not found"}), 404
 
-    data = request.get_json()
-    username = data.get('username')
-    email = data.get('email')
+    username = request.form.get('username')
+    email = request.form.get('email')
+    file = request.files.get('profile_picture')
 
     if username:
         user.username = username
     if email:
         user.email = email
+    if file:
+        filename = secure_filename(file.filename)
+        file_path = os.path.join(UPLOAD_FOLDER, filename)
+        file.save(file_path)
+        user.profile_picture = f'/static/uploads/{filename}'
 
     db.session.commit()
     return jsonify({"message": "Profile updated", "user": user_to_dict(user)}), 200
@@ -138,3 +149,17 @@ def get_following(user_id):
         "total": user.followed.count()
     }), 200
 
+@user_bp.route('/profile/posts', methods=['GET'])
+@jwt_required()
+def get_my_posts():
+    user_id = get_jwt_identity()
+    posts = MoviePost.query.filter_by(user_id=user_id).order_by(MoviePost.id.desc()).all()
+
+    return jsonify([
+        {
+            "id": post.id,
+            "content": post.content,
+            "created_at": post.created_at.isoformat() if post.created_at else None
+        }
+        for post in posts
+    ]), 200

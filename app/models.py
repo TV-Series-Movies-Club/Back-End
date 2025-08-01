@@ -14,7 +14,6 @@ user_club = db.Table(
     db.Column('club_id', db.Integer, db.ForeignKey('movie_clubs.id'), primary_key=True)
 )
 
-# User model
 class User(db.Model):
     __tablename__ = 'users'
 
@@ -22,6 +21,7 @@ class User(db.Model):
     username = db.Column(db.String(80), unique=True, nullable=False)
     email = db.Column(db.String(120), unique=True, nullable=False)
     password_hash = db.Column(db.Text, nullable=False)
+    profile_picture = db.Column(db.String(255), nullable=True)  # ✅ New field added
 
     posts = db.relationship('MoviePost', back_populates='user', cascade='all, delete')
     comments = db.relationship('Comment', back_populates='user', cascade='all, delete')
@@ -36,6 +36,7 @@ class User(db.Model):
         backref=db.backref('followers', lazy='dynamic'),
         lazy='dynamic'
     )
+
 
 # Movie post model
 class MoviePost(db.Model):
